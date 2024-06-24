@@ -46,6 +46,8 @@ solved_c = scipy_solved.y[1]
 solved_p = scipy_solved.y[2]
 solved_dt = scipy_solved.y[3]
 
+plt.figure(figsize=(12, 8))
+
 plt.subplot(121)
 plt.plot(t, gi, 'b--', label="GI - Euler's")
 plt.plot(t, c, 'r--', label="Central - Euler's")
