@@ -20,6 +20,12 @@ k31 = np.random.uniform(low=1,high=10,size=N) #deep tissue to central constant
 gcpd = np.zeros((len(t), 4, N))
 inputs = np.zeros_like(t)
 dosing_interval = np.argwhere(t % (100 * h) == 0)
+for i in range(len(dosing_interval)):
+    dosing_interval[i] += int(np.random.rand() * 30 - 15)
+    if dosing_interval[i] > 500:
+        dosing_interval[i] = 500
+    elif dosing_interval[i] < 0:
+        dosing_interval[i] = 0
 inputs[dosing_interval] = 100 / h 
 parameters = np.column_stack((ka, k10, k12, k21, k13, k31)).T
 
