@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation, PillowWriter, ImageMagickWriter
 
 def function(x, y):
     return np.sin(x**2) + np.cos(y**2) + 0.5 * x ** 2 + y ** 2
