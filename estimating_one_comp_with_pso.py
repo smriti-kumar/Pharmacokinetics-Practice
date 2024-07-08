@@ -34,20 +34,22 @@ for i in range(0, len(t) - 1):
 noise_level = 0.1
 gb_noisy = gb + noise_level * np.random.normal(size=gb.shape)
 
-n = 25
+n = 30
 location = np.random.rand(2, n) * 5
 
 def objective_function(ka, k):
     global n, h, t, gb_noisy, inputs
     parameters = np.column_stack((ka, k)).T
+    ka = np.clip(ka, 0, 1e2)
+    k = np.clip(k, 0, 1e2)
     if (parameters.shape[1] == n):
         gb_sim = np.zeros((len(t), 2, n))
         error = np.zeros(n)
         onecomp_sim = OneCompartmentModel(gb_sim, parameters, inputs, 2)
         for i in range(0, len(t) - 1):
             gb_sim[i+1] = euler_func(gb_sim[i], onecomp_sim.ab(i).T, h)
-        gb_sim = np.clip(gb_sim, 0, 1e3)
         for i in range(n):
+            gb_sim[:, :, i] = np.nan_to_num(gb_sim[:, :, i])
             error[i] = np.sum((gb_noisy - gb_sim[:, :, i])**2)
     else:
         gb_sim = np.zeros((len(t), 2))
@@ -55,6 +57,7 @@ def objective_function(ka, k):
             gi, b = gb_sim[i]
             agi, ab = adrug(t[i], gb_sim[i], ka, k, inputs, i)
             gb_sim[i + 1] = [gi + h * agi, b + h * ab]
+            gb_sim = np.nan_to_num(gb_sim)
         error = np.sum((gb_noisy - gb_sim))
     return error
 
@@ -68,7 +71,7 @@ w = 0.8
 c1 = 0.25
 c2 = 0.25
 
-V = np.random.randn(2, n) * 0.2
+V = np.random.randn(2, n) * 0.1
 
 loop_n = 100
 for i in range (loop_n):
