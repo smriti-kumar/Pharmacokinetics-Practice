@@ -58,7 +58,7 @@ def objective_function(ka, k):
             agi, ab = adrug(t[i], gb_sim[i], ka, k, inputs, i)
             gb_sim[i + 1] = [gi + h * agi, b + h * ab]
             gb_sim = np.nan_to_num(gb_sim)
-        error = np.sum((gb_noisy - gb_sim))
+        error = np.sum((gb_noisy - gb_sim)**2)
     return error
 
 func_values = objective_function(location[0], location[1])
