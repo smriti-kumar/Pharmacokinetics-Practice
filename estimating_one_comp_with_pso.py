@@ -1,6 +1,7 @@
 import numpy as np
 from abstract_base_class_models import OneCompartmentModel
 from helper_methods import euler_func
+from tqdm import tqdm
 
 h = 0.01 #step size
 total_time = 5 #total time
@@ -73,8 +74,8 @@ c2 = 0.25
 
 V = np.random.randn(2, n) * 0.1
 
-loop_n = 100
-for i in range (loop_n):
+loop_n = int(1e6)
+for i in tqdm(range(loop_n), desc = '>>> Running PSO...'):
     r0 = np.random.rand(1, n)
     r1 = np.random.rand(1, n)
     V = w * V + c1 * r0 * (p_best - location) + c2 * r1 * (g_best - location)

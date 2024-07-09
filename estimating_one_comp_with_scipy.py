@@ -2,6 +2,7 @@ import numpy as np
 from abstract_base_class_models import OneCompartmentModel
 from helper_methods import euler_func
 import scipy
+from tqdm import tqdm
 
 h = 0.01 #step size
 total_time = 5 #total time
@@ -27,7 +28,7 @@ def adrug(t, gb, ka, k, inputs, i):
     return [inputs[i] - ka * gi,
             ka * gi - k * b]
 
-for i in range(0, len(t) - 1):
+for i in tqdm(range(0, len(t) - 1), desc = '>>> Simulating...'):
     gi, b = gb[i]
     agi, ab = adrug(t[i], gb[i], ka, k, inputs, i)
     gb[i + 1] = [gi + h * agi, b + h * ab]
