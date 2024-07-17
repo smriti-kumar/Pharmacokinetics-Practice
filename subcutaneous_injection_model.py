@@ -1,12 +1,8 @@
 import numpy as np
-from helper_methods import euler_func
-import scipy
-import pandas as pd
 import matplotlib.pyplot as plt
+from helper_methods import euler_func
 
-h = 0.01 #step size
-
-def adrug(states, time, parameters, inputs):
+def model(states, time, parameters, inputs):
     """
     Computes the rate of change of the state variables for a subcutaneous injection pharmacokinetics model.
 
@@ -50,86 +46,42 @@ def adrug(states, time, parameters, inputs):
     # Return the new state as a numpy array
     return np.array([dx1dt, dx2dt, dx3dt])
 
-def func(t, k1, k2, k3, Vd):
-    global inputs, h
-    drug_in_body = np.zeros((len(t), 3))
-    parameters = np.column_stack((k1, k2, k3, Vd)).T
-    for i in range(0, len(t) - 1):
-        x1 = drug_in_body[i, 0]
-        x2 = drug_in_body[i, 1]
-        x3 = drug_in_body[i, 2]
-        states = np.column_stack((x1, x2, x3)).T
-        dx1dt, dx2dt, dx3dt = adrug(states, t, parameters, inputs[i])
-        drug_in_body[i+1, 0] = drug_in_body[i, 0] + h * dx1dt
-        drug_in_body[i+1, 1] = drug_in_body[i, 1] + h * dx2dt
-        drug_in_body[i+1, 2] = drug_in_body[i, 2] + h * dx3dt
-    return drug_in_body[:, 2]
+h = 0.01 #step size
+total_time = 5 #total time
+t = np.arange(0, total_time + h, h) #time values
 
-"""
-# for 10 mu g/ kg
+k1 = 2
+k2 = 3
+k3 = 4
+Vd = 5
 
-df = pd.read_csv("liraglutide-10mug-kg.csv")
-df = pd.DataFrame.to_numpy(df)
-t = df[:, 0]
-b = df[:, 1]
-inputs = np.zeros_like(t)
-inputs[0] = 10
-
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-ka, k = parameters
-print("For 10 mu g / kg")
-print("ka =", ka)
-print("k =", k)
-
-# for 15 mu g/ kg
-
-df = pd.read_csv("liraglutide-15mug-kg.csv")
-df = pd.DataFrame.to_numpy(df)
-t = df[:, 0]
-b = df[:, 1]
-inputs = np.zeros_like(t)
-inputs[0] = 15
-
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-ka, k = parameters
-print("For 15 mu g / kg")
-print("ka =", ka)
-print("k =", k)
-"""
-# for 20 mu g / kg
-
-df = pd.read_csv("liraglutide-20mug-kg.csv")
-df = pd.DataFrame.to_numpy(df)
-t = df[:, 0]
-b = df[:, 1]
+drug_in_body = np.zeros((len(t), 3))
 inputs = np.zeros_like(t)
 inputs[0] = 20
-
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-k1, k2, k3, Vd = parameters
-print("For 20 mu g / kg")
-print("k1 =", k1)
-print("k2 =", k2)
-print("k3 =", k3)
-print("Vd =", Vd)
-
-
-drug_est = np.zeros((len(t), 3))
 parameters = np.column_stack((k1, k2, k3, Vd)).T
-for i in range(0, len(t) - 1):
-    x1 = drug_est[i, 0]
-    x2 = drug_est[i, 1]
-    x3 = drug_est[i, 2]
-    states = np.column_stack((x1, x2, x3)).T
-    dx1dt, dx2dt, dx3dt = adrug(states, t, parameters, inputs[i])
-    drug_est[i+1, 0] = drug_est[i, 0] + h * dx1dt
-    drug_est[i+1, 1] = drug_est[i, 1] + h * dx2dt
-    drug_est[i+1, 2] = drug_est[i, 2] + h * dx3dt
 
-plt.plot(t, b, 'b--', label='Given')
-plt.plot(t, drug_est[:, 2], 'r--', label='Estimated')
-plt.legend()
+for i in range(0, len(t) - 1):
+    x1 = drug_in_body[i, 0]
+    x2 = drug_in_body[i, 1]
+    x3 = drug_in_body[i, 2]
+    states = np.column_stack((x1, x2, x3)).T
+    dx1dt, dx2dt, dx3dt = model(states, t, parameters, inputs[i])
+    drug_in_body[i+1, 0] = drug_in_body[i, 0] + h * dx1dt
+    drug_in_body[i+1, 1] = drug_in_body[i, 1] + h * dx2dt
+    drug_in_body[i+1, 2] = drug_in_body[i, 2] + h * dx3dt
+
+x1 = drug_in_body[:, 0]
+x2 = drug_in_body[:, 1]
+x3 = drug_in_body[:, 2]
+
+plt.figure(figsize = (12, 8))
+
+plt.plot(t, x1, 'b--', label="x1")
+plt.plot(t, x2, 'r--', label="x2")
+plt.plot(t, x3, 'g--', label="x3")
+plt.title("Amount of Drug Over Time - Euler's")
 plt.xlabel('Time')
-plt.ylabel('Plasma Concentration of Drug')
-plt.title('Model Fitting with Scipy')
+plt.ylabel('Amount of Drug (mg)')
+plt.legend()
+plt.grid()
 plt.show()

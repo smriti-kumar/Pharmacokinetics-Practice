@@ -50,52 +50,6 @@ def adrug(states, time, parameters, inputs):
     # Return the new state as a numpy array
     return np.array([dx1dt, dx2dt, dx3dt])
 
-def func(t, k1, k2, k3, Vd):
-    global inputs, h
-    drug_in_body = np.zeros((len(t), 3))
-    parameters = np.column_stack((k1, k2, k3, Vd)).T
-    for i in range(0, len(t) - 1):
-        x1 = drug_in_body[i, 0]
-        x2 = drug_in_body[i, 1]
-        x3 = drug_in_body[i, 2]
-        states = np.column_stack((x1, x2, x3)).T
-        dx1dt, dx2dt, dx3dt = adrug(states, t, parameters, inputs[i])
-        drug_in_body[i+1, 0] = drug_in_body[i, 0] + h * dx1dt
-        drug_in_body[i+1, 1] = drug_in_body[i, 1] + h * dx2dt
-        drug_in_body[i+1, 2] = drug_in_body[i, 2] + h * dx3dt
-    return drug_in_body[:, 2]
-
-"""
-# for 10 mu g/ kg
-
-df = pd.read_csv("liraglutide-10mug-kg.csv")
-df = pd.DataFrame.to_numpy(df)
-t = df[:, 0]
-b = df[:, 1]
-inputs = np.zeros_like(t)
-inputs[0] = 10
-
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-ka, k = parameters
-print("For 10 mu g / kg")
-print("ka =", ka)
-print("k =", k)
-
-# for 15 mu g/ kg
-
-df = pd.read_csv("liraglutide-15mug-kg.csv")
-df = pd.DataFrame.to_numpy(df)
-t = df[:, 0]
-b = df[:, 1]
-inputs = np.zeros_like(t)
-inputs[0] = 15
-
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-ka, k = parameters
-print("For 15 mu g / kg")
-print("ka =", ka)
-print("k =", k)
-"""
 # for 20 mu g / kg
 
 df = pd.read_csv("liraglutide-20mug-kg.csv")
@@ -105,14 +59,68 @@ b = df[:, 1]
 inputs = np.zeros_like(t)
 inputs[0] = 20
 
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-k1, k2, k3, Vd = parameters
-print("For 20 mu g / kg")
+n = 5
+location = np.random.rand(4, n) * 100
+
+def objective_function(k1, k2, k3, Vd):
+    global n, h, t, b, inputs
+    parameters = np.column_stack((k1, k2, k3, Vd)).T
+    if (parameters.shape[1] == n):
+        b_sim = np.zeros((len(t), 3, n))
+        error = np.zeros(n)
+        for i in range(0, len(t) - 1):
+            x1 = b_sim[i, 0]
+            x2 = b_sim[i, 1]
+            x3 = b_sim[i, 2]
+            states = np.column_stack((x1, x2, x3)).T
+            print(states)
+            b_sim[i+1] = euler_func(b_sim[i], adrug(states, t, parameters, inputs[i]), h)
+        for i in range(n):
+            error[i] = np.sum((b - b_sim[:, 2, i])**2)
+    else:
+        b_sim = np.zeros((len(t), 3))
+        for i in range(0, len(t) - 1):
+            x1 = b_sim[i, 0]
+            x2 = b_sim[i, 1]
+            x3 = b_sim[i, 2]
+            states = np.column_stack((x1, x2, x3)).T
+            dx1dt, dx2dt, dx3dt = adrug(states, t, parameters, inputs[i])
+            b_sim[i+1, 0] = b_sim[i, 0] + h * dx1dt
+            b_sim[i+1, 1] = b_sim[i, 1] + h * dx2dt
+            b_sim[i+1, 2] = b_sim[i, 2] + h * dx3dt
+        error = np.sum((b - b_sim[:, 2])**2)
+    return error
+
+func_values = objective_function(location[0], location[1], location[2], location[3])
+p_best = func_values
+p_best_values = location
+g_best = np.min(func_values)
+g_best_values = p_best_values.argmin()
+
+w = 0.8
+c1 = 0.25
+c2 = 0.25
+
+V = np.random.randn(4, n) * 0.1
+
+loop_n = 10
+for i in range (loop_n):
+    r0 = np.random.rand(1, n)
+    r1 = np.random.rand(1, n)
+    V = w * V + c1 * r0 * (p_best - location) + c2 * r1 * (g_best - location)
+    location = location + V
+    func_values = objective_function(location[0], location[1], location[2], location[3])
+    p_best_values[:, (p_best >= func_values)] = location[:, (p_best >= func_values)]
+    p_best = objective_function(p_best_values[0], p_best_values[1], p_best_values[2], p_best_values[3])
+    g_best_values = p_best_values[:, p_best.argmin()]
+    g_best = objective_function(g_best_values[0], g_best_values[1], g_best_values[2], g_best_values[3])
+
+k1, k2, k3, Vd = g_best_values
+
 print("k1 =", k1)
 print("k2 =", k2)
 print("k3 =", k3)
 print("Vd =", Vd)
-
 
 drug_est = np.zeros((len(t), 3))
 parameters = np.column_stack((k1, k2, k3, Vd)).T
@@ -131,5 +139,5 @@ plt.plot(t, drug_est[:, 2], 'r--', label='Estimated')
 plt.legend()
 plt.xlabel('Time')
 plt.ylabel('Plasma Concentration of Drug')
-plt.title('Model Fitting with Scipy')
+plt.title('Model Fitting with PSO')
 plt.show()
