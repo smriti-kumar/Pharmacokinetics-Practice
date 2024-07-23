@@ -51,7 +51,7 @@ def adrug(states, time, parameters, inputs):
     return np.array([dx1dt, dx2dt, dx3dt])
 
 def func(t, k1, k2, k3, Vd):
-    global inputs, h
+    global inputs, h, b
     drug_in_body = np.zeros((len(t), 3))
     parameters = np.column_stack((k1, k2, k3, Vd)).T
     for i in range(0, len(t) - 1):
@@ -65,7 +65,7 @@ def func(t, k1, k2, k3, Vd):
         drug_in_body[i+1, 2] = drug_in_body[i, 2] + h * dx3dt
     return drug_in_body[:, 2]
 
-"""
+
 # for 10 mu g/ kg
 
 df = pd.read_csv("liraglutide-10mug-kg.csv")
@@ -75,12 +75,7 @@ b = df[:, 1]
 inputs = np.zeros_like(t)
 inputs[0] = 10
 
-parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
-ka, k = parameters
-print("For 10 mu g / kg")
-print("ka =", ka)
-print("k =", k)
-
+"""
 # for 15 mu g/ kg
 
 df = pd.read_csv("liraglutide-15mug-kg.csv")
@@ -95,7 +90,7 @@ ka, k = parameters
 print("For 15 mu g / kg")
 print("ka =", ka)
 print("k =", k)
-"""
+
 # for 20 mu g / kg
 
 df = pd.read_csv("liraglutide-20mug-kg.csv")
@@ -104,7 +99,7 @@ t = df[:, 0]
 b = df[:, 1]
 inputs = np.zeros_like(t)
 inputs[0] = 20
-
+"""
 parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b)
 k1, k2, k3, Vd = parameters
 print("For 20 mu g / kg")
