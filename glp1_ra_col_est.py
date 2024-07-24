@@ -16,9 +16,9 @@ def adrug(states, time, parameters, inputs):
 
 def func(t, k1, k2, k3, Vd):
     global inputs, h
-    drug_in_body = np.zeros((8, len(t), 3))
+    drug_in_body = np.zeros((3, len(t), 3))
     parameters = np.column_stack((k1, k2, k3, Vd)).T
-    for j in range(0, 8):
+    for j in range(0, 3):
         for i in range(0, len(t) - 1):
             x1 = drug_in_body[j, i, 0]
             x2 = drug_in_body[j, i, 1]
@@ -30,12 +30,12 @@ def func(t, k1, k2, k3, Vd):
             drug_in_body[j, i+1, 2] = drug_in_body[j, i, 2] + h * dx3dt
     return drug_in_body[:, :, 2].flatten()
 
-df = pd.read_csv("GLP1-RA Digitized Data - plasma concentration.csv")
+df = pd.read_csv("GLP1-RA Digitized Data - less than 5 plasma concentration.csv")
 df = pd.DataFrame.to_numpy(df)
 t = df[:, 0]
 b = df[:, 1:]
-inputs = np.zeros((len(t), 8))
-inputs[0, :] = [1.25, 2.5, 5, 10, 12.5, 15, 17.5, 20]
+inputs = np.zeros((len(t), 3))
+inputs[0, :] = [1.25, 2.5, 5]
 
 parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b.T.flatten())
 k1, k2, k3, Vd = parameters
@@ -44,9 +44,9 @@ print("k2 =", k2)
 print("k3 =", k3)
 print("Vd =", Vd)
 
-drug_est = np.zeros((8, len(t), 3))
+drug_est = np.zeros((3, len(t), 3))
 parameters = np.column_stack((k1, k2, k3, Vd)).T
-for j in range(0, 8):
+for j in range(0, 3):
     for i in range(0, len(t) - 1):
         x1 = drug_est[j, i, 0]
         x2 = drug_est[j, i, 1]
