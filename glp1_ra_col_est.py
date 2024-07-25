@@ -35,7 +35,7 @@ df = pd.DataFrame.to_numpy(df)
 t = df[:, 0]
 b = df[:, 1:]
 inputs = np.zeros((len(t), 3))
-inputs[0, :] = [1.25, 2.5, 5]
+inputs[0, :] = np.array([1.25, 2.5, 5])
 
 parameters, parameters_covariance = scipy.optimize.curve_fit(func, t, b.T.flatten())
 k1, k2, k3, Vd = parameters
