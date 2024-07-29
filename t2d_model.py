@@ -237,7 +237,7 @@ Initial Cnditions
 """
 
 
-def initial_conditions(parameters: np.ndarray) -> np.ndarray:
+def generate_initial_conditions(parameters: np.ndarray) -> np.ndarray:
 
     """
     This calculates the steady state values for each state variable
@@ -319,3 +319,18 @@ def model(states, time, parameters, inputs) -> np.ndarray:
             
     return np.column_stack((dGadt, dGtdt, dGcdt, dGpdt, dGEdt, dIdt, dIEdt))
 
+
+"""
+Generate Inputs
+"""
+
+def generate_inputs(time, time_step, meal_times, meal_amounts):
+
+    assert all(np.isin(meal_times, time)), "All meal_times must be in time"
+    assert np.isclose(time[1] - time[0], time_step), "Time step doesn't seem correct"
+
+    inputs = np.zeros_like(time)
+
+    inputs[meal_times] = meal_amounts / time_step
+
+    return inputs
