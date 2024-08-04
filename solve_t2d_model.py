@@ -25,7 +25,7 @@ print(model_parameters.shape, initial_conditions.shape)
 """ Simulate Model """
 
 solutions = np.zeros((time.size, initial_conditions.shape[0], initial_conditions.shape[1]))
-
+print(solutions.shape)
 solutions[0] = initial_conditions
 
 for idx in range(1, time.size):
@@ -38,7 +38,7 @@ for idx in range(1, time.size):
                                         parameters=model_parameters)
     
 # Convert from mmol/L to mg/dL
-solutions.T[4] *= 18
+#solutions.T[4] *= 18
     
 
 plt.figure()
@@ -50,6 +50,6 @@ plt.plot(time, mean)
 plt.fill_between(time, mean - std, mean + std, alpha = 0.5)
 
 plt.xlabel('Time (min)')
-plt.ylabel('BGC (mg/dL)')
+plt.ylabel('BGC (mmol/L)')
 
 plt.show()
